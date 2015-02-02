@@ -588,8 +588,10 @@ future<typename tcp<InetTraits>::connection> tcp<InetTraits>::connect(socket_add
     auto tcbp = make_lw_shared<tcb>(*this, id);
     _tcbs.insert({id, tcbp});
     tcbp->connect();
+    fprint(std::cout,"connect %ld cpu %d\n",(long)((void *)&id),engine().cpu_id());
 
-    return tcbp->connect_done().then([tcbp] {
+    return tcbp->connect_done().then([tcbp,id] {
+        fprint(std::cout,"connect_done %ld cpu %d\n",(long)((void *)&id),engine().cpu_id());
         return make_ready_future<connection>(connection(tcbp));
     });
 }
