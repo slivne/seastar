@@ -68,7 +68,13 @@ std::vector<cpu> allocate(configuration c) {
     auto mem_per_proc = align_down<size_t>(mem / procs, 2 << 20);
     std::vector<hwloc_cpuset_t> cpu_sets{procs};
     auto root = hwloc_get_root_obj(topology);
-    hwloc_distribute(topology, root, cpu_sets.data(), cpu_sets.size(), INT_MAX);
+    unsigned cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+    if (procs > cores) {
+       hwloc_distribute(topology, root, cpu_sets.data(), cpu_sets.size(), INT_MAX);
+    }
+    else {
+       hwloc_distribute(topology, root, cpu_sets.data(), cpu_sets.size(), hwloc_get_type_or_below_depth(topology,HWLOC_OBJ_CORE));
+    }
     std::vector<cpu> ret;
     std::unordered_map<hwloc_obj_t, size_t> topo_used_mem;
     std::vector<std::pair<cpu, size_t>> remains;
