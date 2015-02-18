@@ -1,8 +1,9 @@
-#!/bin/bash -xvf
+#!/bin/bash -xv
 
-export vcpus_list="1 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56"
-export vcpus_list=2
-export iterations=1 
+export vcpus_list="2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56"
+export vcpus_list="2 4 8 12 16 20 24 28 32 6 10 14 18 22 26 30 34 36 38 40 42 44 46 48 50 52 54 56"
+#export vcpus_list="2 4 6"
+iterations=3
 export tester_ip="192.168.20.185"
 export seastar_ip="192.168.20.101"
 export seastar_server_name="intel1"
@@ -16,14 +17,21 @@ export test_tool_seawreck_cmd="sudo /home/$user/seastar/build/release/apps/seawr
 export test_tool_cmd="$test_tool_seawreck_cmd"
 
 export test_tool_parser_wrk_cmd="cat"
-export test_tool_parser_seawreck_cmd="tr '[:upper:]' '[:lower:]' | grep ^[rt][eo] | sed s/': '/':'/g | sed s/' '/'_'/g  | sed s/^/\"/g | sed s/:/\":\"/g | sed s/$/\"/g"
+export test_tool_parser_seawreck_cmd="tr '[:upper:]' '[:lower:]' | grep ^[rt][eo] | grep [0-9] | sed s/': '/':'/g | sed s/' '/'_'/g  | sed s/^/\"/g | sed s/:/\":/g | sed s/$/$/g"
 export test_tool_parser_cmd="$test_tool_parser_seawreck_cmd"
 
 
 for vcpu in $vcpus_list; do
 
-rm -Rf out.*
-for iteration in $iterations; do
+pwd
+touch out
+ls out*
+rm out*
+iteration=0
+echo $iteration $iterations
+while  [ $iteration -lt $iterations ]; do
+iteration=$(($iteration+1))
+echo $iteration $iterations
 
 ssh $user@$seastar_server_name sudo $seastar_cmd $vcpu &
 
@@ -33,10 +41,15 @@ ssh $user@$seastar_server_name sudo $seastar_cmd $vcpu &
 
 sleep 20
 
-$test_tool_cmd $vcpu --conn $(($vcpu*100)) > out.$iteration
+tcpu=$(($vcpu+2))
+$test_tool_cmd $tcpu --conn $(($tcpu*64)) > out.$iteration
 
-echo "parser $test_tool_parser_cmd"
-cat out.$iteration | tr '[:upper:]' '[:lower:]' | grep ^[rt][eo] | sed s/': '/':'/g | sed s/' '/'_'/g  | sed s/^/\"/g | sed s/:/\":\"/g | sed s/'\/'/'_'/g | sed s/$/\",/g >  out.$iteration.json
+
+# translate to json
+echo "{" > out.$iteration.json
+cat out.$iteration | tr '[:upper:]' '[:lower:]' | grep ^[rt][eo] | grep [0-9] | grep -v "cpu" | sed s/': '/':'/g | sed s/' '/'_'/g  | sed s/^/\"/g | sed s/:/\":/g | sed s/'\/'/'_'/g | sed s/$/,/g >>  out.$iteration.json
+echo '"dummy":0' >> out.$iteration.json
+echo "}" >> out.$iteration.json
 #echo "---- test ----" >> out
 
 ssh $user@$seastar_server_name sudo pkill -9 httpd
@@ -45,42 +58,26 @@ sleep 10
 
 done
 
-if [1 != 0]; 
-then
-
-cat out.1
-cat out.1.json
-cat out.2
-cat out.2.json
-cat out.3
-cat out.3.json
 echo "[" > out.all.json
-for iterations in 1 2; do
-cat out.$iterations.json >> out.all.json
-echo "," >> out.all.json
+iteration=0
+while [ $iteration -lt $(($iterations-1)) ]; do
+  iteration=$(($iteration+1))
+  cat out.$iteration.json >> out.all.json
+  echo "," >> out.all.json
 done
-cat out.3.json >> out.all.json
+cat out.$iteration.json >> out.all.json
 echo "]" >> out.all.json
 
 cat out.all.json
 
-chmod +x tests/scripts/*.py
+#chmod +x *.py
 
-tests/scripts/statjson.py out.all.json > out.all.ana.json
+./statjson.py out.all.json > out.all.ana.json
 
 cat out.all.ana.json
 
-rm -f jenkins_perf.xml
-
-tests/scripts/statjenkins.py out.all.ana.json  req_per_sec req_per_sec httpd req_per_sec req_per_sec > jenkins_perf.xml
-cp jenkins_perf.xml "$config"_"$vcpus"_jenkins_perf.xml
-cp out.all.json "$config"_"$vcpus"_jenkins_perf.json
-cp out.all.ana.json "$config"_"$vcpus"_jenkins_perf.ana.json
-
-ssh $remote sudo rm -Rf $WORKSPACE/$BUILD_NUMBER/jenkins_*
-
-ls *_jenkins_perf.*
-fi
+cp out.all.json "$vcpu"_jenkins_perf.json
+cp out.all.ana.json "$vcpu"_jenkins_perf.ana.json
 
 sleep 10
 
