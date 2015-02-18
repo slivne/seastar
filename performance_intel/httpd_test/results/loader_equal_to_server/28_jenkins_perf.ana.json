@@ -1,0 +1,15 @@
+{
+    "dummy": 0.0,
+    "dummy_rsd": 0,
+    "dummy_std": 0,
+    "requests_sec": 6826827.973565333,
+    "requests_sec_rsd": 0.38858628535985873,
+    "requests_sec_std": 26528.117230385244,
+    "total": 3,
+    "total_requests": 409649426.0,
+    "total_requests_rsd": 0.38863050514265873,
+    "total_requests_std": 1592022.633577802,
+    "total_time": 60.005822333333334,
+    "total_time_rsd": 4.400102308177099e-05,
+    "total_time_std": 2.6403175735296494e-05
+}
