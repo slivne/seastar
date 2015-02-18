@@ -1,6 +1,6 @@
 #!/bin/bash -xv
 
-export vcpus_list="22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56"
+export vcpus_list="2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56"
 #export vcpus_list="2 4 8 12 16 20 24 28 32 6 10 14 18 22 26 30 34 36 38 40 42 44 46 48 50 52 54 56"
 #export vcpus_list="2 4 8 12 16 20 24 28 32 6 10 14 18 22 26 30 34 36 38 40 42 44 46 48 50 52 54 56"
 #export vcpus_list="2 4 6"
@@ -45,7 +45,7 @@ ping -c 20 $seastar_ip
 
 out="tmp_out"
 rm -Rf $out*
-clients=48
+clients=28
 if [ $vcpu -lt 6 ]; then
    clients=12
 fi
