@@ -1,0 +1,45 @@
+[
+{
+"servers": "192.168.20.101:11211",
+"threads count": 56,
+"concurrency": 1680,
+"run time": 60,
+"set proportion": 0.10,
+"get proportion": 0.90,
+"Run time": 20.0,
+"Ops": TPS:,
+"file": "out.all"
+}
+,
+{
+"servers": "192.168.20.101:11211",
+"threads count": 56,
+"concurrency": 1680,
+"run time": 60,
+"set proportion": 0.10,
+"get proportion": 0.90,
+"Run time": 20.0,
+"Ops": TPS:,
+"file": "out.all"
+}
+,
+{
+"servers": "192.168.20.101:11211",
+"threads count": 56,
+"concurrency": 1680,
+"run time": 60,
+"set proportion": 0.10,
+"get proportion": 0.90,
+"cmd_get": 19768706,
+"cmd_set": 2196707,
+"get_misses": 0,
+"written_bytes": 1697911025,
+"read_bytes": 2943296284,
+"object_bytes": 281178496,
+"Run time": 20.0,
+"Ops": 21965413,
+"TPS": 366069,
+"Net_rate": 73.7,
+"file": "out.all"
+}
+]

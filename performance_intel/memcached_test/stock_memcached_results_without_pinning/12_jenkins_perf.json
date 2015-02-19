@@ -1,0 +1,61 @@
+[
+{
+"servers": "192.168.20.101:11000",
+"threads count": 24,
+"concurrency": 720,
+"run time": 60,
+"set proportion": 0.10,
+"get proportion": 0.90,
+"cmd_get": 81841761,
+"cmd_set": 9093887,
+"get_misses": 0,
+"written_bytes": 7029293820,
+"read_bytes": 12185234544,
+"object_bytes": 1164017536,
+"Run time": 20.0,
+"Ops": 90935648,
+"TPS": 1515504,
+"Net_rate": 305.4,
+"file": "out.all"
+}
+,
+{
+"servers": "192.168.20.101:11000",
+"threads count": 24,
+"concurrency": 720,
+"run time": 60,
+"set proportion": 0.10,
+"get proportion": 0.90,
+"cmd_get": 82297603,
+"cmd_set": 9144540,
+"get_misses": 0,
+"written_bytes": 7068447015,
+"read_bytes": 12253102704,
+"object_bytes": 1170501120,
+"Run time": 20.0,
+"Ops": 91442143,
+"TPS": 1523943,
+"Net_rate": 307,
+"file": "out.all"
+}
+,
+{
+"servers": "192.168.20.101:11000",
+"threads count": 24,
+"concurrency": 720,
+"run time": 60,
+"set proportion": 0.10,
+"get proportion": 0.90,
+"cmd_get": 83507640,
+"cmd_set": 9278988,
+"get_misses": 0,
+"written_bytes": 7172374720,
+"read_bytes": 12433265584,
+"object_bytes": 1187710464,
+"Run time": 20.0,
+"Ops": 92786628,
+"TPS": 1546349,
+"Net_rate": 311.7,
+"file": "out.all"
+}
+]
