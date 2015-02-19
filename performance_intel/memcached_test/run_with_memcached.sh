@@ -1,6 +1,6 @@
 #!/bin/bash -xv
 
-export vcpus_list="2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56"
+export vcpus_list="12 8 20 2 4 6 10 14 16 18 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56"
 #export vcpus_list="2 4 8 12 16 20 24 28 32 6 10 14 18 22 26 30 34 36 38 40 42 44 46 48 50 52 54 56"
 #export vcpus_list="2 4 8 12 16 20 24 28 32 6 10 14 18 22 26 30 34 36 38 40 42 44 46 48 50 52 54 56"
 #export vcpus_list="2 4 6"
@@ -13,7 +13,7 @@ export user="shlomi"
 
 export seastar_cmd_dpdk="sudo /home/$user/seastar/build/release/apps/memcached/memcached --network-stack native --dpdk-pmd --dhcp 0 --host-ipv4-addr $seastar_ip --netmask-ipv4-addr 255.255.255.0 --collectd 0 --smp "
 export seastar_cmd_posix="sudo /home/$user/seastar/build/release/apps/memcached/memcached --network-stack posix --dhcp 0 --host-ipv4-addr $seastar_ip --netmask-ipv4-addr 255.255.255.0 --collectd 0 --smp "
-export seastar_cmd="$seastar_cmd_dpdk"
+export seastar_cmd="$seastar_cmd_posix"
 
 export test_tool_cmd="for ((i = 0; i < 40; ++i)); do memaslap -s 192.168.10.101:11211 -t 20s -T 1 -c 60 -X 64 > $out.$i & done"
 
@@ -34,7 +34,7 @@ while  [ $iteration -lt $iterations ]; do
 iteration=$(($iteration+1))
 echo $iteration $iterations
 
-ssh $user@$seastar_server_name sudo $seastar_cmd $vcpu &
+ssh $user@$seastar_server_name "for ((i = 0; i < $vcpu; ++i)); do port=\$((\$i+11000)) ; echo \$port ; taskset -c \$((\$i*2)) memcached -t 1 -m 2048 -p \$port > /tmp/null &  done;"
 
 #sleep 10 
 sleep 10
@@ -47,12 +47,9 @@ ping -c 20 $seastar_ip
 
 out="tmp_out"
 rm -Rf $out*
-clients=52
-if [ $vcpu -lt 12 ]; then
-   clients=12
-fi
+clients=$vcpu
 
-for ((i = 0; i < $clients; ++i)); do taskset -c $i memaslap -s $seastar_ip:11211 -t 60s -T 1 -c 60 -X 64 > $out.$i & done
+for ((i = 0; i < $clients; ++i)); do port=$(($i+11000)); taskset -c $(($i*2)),$(($i*2+1)) memaslap -s $seastar_ip:$port -t 60s -T 2 -c 60 -X 64 > $out.$i & done
 wait `pgrep memaslap`
 
 cat $out.* | grep "^servers" | head -1 >> $out.sum
