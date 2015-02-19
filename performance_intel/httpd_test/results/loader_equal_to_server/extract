@@ -1,0 +1,1 @@
+for f in `ls *_jenkins_perf.ana*`; do echo -n "`echo $f | cut -f1 -d'_'`,"; echo "`cat $f | grep requests_sec | grep -v requests_sec_ |cut -f2 -d':'` `cat $f | grep requests_sec_std |cut -f2 -d':'`"; done | sort -n
