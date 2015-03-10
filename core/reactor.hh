@@ -720,9 +720,6 @@ public:
         };
         eraser(_expired_timers);
         eraser(_expired_lowres_timers);
-        for ( auto it = _signal_handlers.begin(); it != _signal_handlers.end(); ++it ) {
-            ::signal(it->first,SIG_DFL);
-        }
     }
     void operator=(const reactor&) = delete;
 
