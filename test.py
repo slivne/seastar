@@ -144,7 +144,7 @@ if __name__ == "__main__":
         else:
             print_status('%s PASSED %s' % (prefix, path))
         if args.jenkins and boost_test:
-           jenkins_log.write(out[9:len(out)-22])
+           jenkins_log.write(out[9:-9])
 
     if args.jenkins:
         jenkins_log.write(b'</TestSuite></TestLog>')
