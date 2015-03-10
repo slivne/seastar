@@ -34,6 +34,7 @@ SEASTAR_TEST_CASE(test_finally_is_called_on_success_and_failure) {
     auto finally1 = make_shared<bool>();
     auto finally2 = make_shared<bool>();
 
+            BOOST_REQUIRE(false);
     return make_ready_future().then([] {
     }).finally([=] {
         *finally1 = true;
