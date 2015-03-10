@@ -74,12 +74,6 @@ class pollable_fd;
 class pollable_fd_state;
 class lowres_clock;
 
-template <typename CharType>
-class input_stream;
-
-template <typename CharType>
-class output_stream;
-
 struct free_deleter {
     void operator()(void* p) { ::free(p); }
 };
@@ -448,9 +442,9 @@ class smp_message_queue {
         async_work_item(Func&& func) : _func(std::move(func)) {}
         virtual future<> process() override {
             try {
-                return this->_func().rescue([this] (auto&& get_result) {
+                return this->_func().then_wrapped([this] (auto&& f) {
                     try {
-                        _result = get_result();
+                        _result = f.get();
                     } catch (...) {
                         _ex = std::current_exception();
                     }
@@ -688,16 +682,28 @@ private:
     template <typename Func> // signature: bool ()
     static std::unique_ptr<pollfn> make_pollfn(Func&& func);
 
-    struct signal_handler {
-        signal_handler(int signo, std::function<void ()>&& handler);
-        std::function<void ()> _handler;
-    };
-    std::atomic<uint64_t> _pending_signals;
-    std::unordered_map<int, signal_handler> _signal_handlers;
-    bool poll_signal();
-    friend void sigaction(int signo, siginfo_t* siginfo, void* ignore);
+    class signals {
+    public:
+        signals();
+        ~signals();
 
+        bool poll_signal();
+        void handle_signal(int signo, std::function<void ()>&& handler);
+        void handle_signal_once(int signo, std::function<void ()>&& handler);
+        static void action(int signo, siginfo_t* siginfo, void* ignore);
+
+    private:
+        struct signal_handler {
+            signal_handler(int signo, std::function<void ()>&& handler);
+            std::function<void ()> _handler;
+        };
+        std::atomic<uint64_t> _pending_signals;
+        std::unordered_map<int, signal_handler> _signal_handlers;
+    };
+
+    signals _signals;
     thread_pool _thread_pool;
+    friend thread_pool;
 
     void run_tasks(circular_buffer<std::unique_ptr<task>>& tasks, size_t task_quota);
     bool posix_reuseport_detect();
@@ -746,9 +752,6 @@ public:
 
     template <typename Func>
     future<io_event> submit_io(Func prepare_io);
-
-    void handle_signal(int signo, std::function<void ()>&& handler);
-    void handle_signal_once(int signo, std::function<void ()>&& handler);
 
     int run();
     void exit(int ret);
@@ -1040,9 +1043,6 @@ void reactor::complete_timers(T& timers, E& expired_timers, EnableFunc&& enable_
     }
     enable_fn();
 }
-
-#include <iostream>
-#include "sstring.hh"
 
 inline
 future<size_t> pollable_fd::read_some(char* buffer, size_t size) {

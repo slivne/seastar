@@ -16,27 +16,24 @@
  * under the License.
  */
 /*
- * Copyright (C) 2015 Cloudius Systems, Ltd.
+ * Copyright 2015 Cloudius Systems
  */
 
-#pragma once
+#include "common.hh"
 
-/*
- * This header file defines a hash function for enum types, using the
- * standard hash function of the underlying type (such as int). This makes
- * it possible to inherit from this type to
- */
+namespace httpd {
 
-#include <type_traits>
-#include <functional>
-#include <cstddef>
-
-template <typename T>
-class enum_hash {
-    static_assert(std::is_enum<T>::value, "must be an enum");
-public:
-    std::size_t operator()(const T& e) const {
-        using utype = typename std::underlying_type<T>::type;
-        return std::hash<utype>()(static_cast<utype>(e));
+operation_type str2type(const sstring& type) {
+    if (type == "DELETE") {
+        return DELETE;
     }
-};
+    if (type == "POST") {
+        return POST;
+    }
+    if (type == "PUT") {
+        return PUT;
+    }
+    return GET;
+}
+
+}

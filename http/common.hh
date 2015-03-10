@@ -16,27 +16,30 @@
  * under the License.
  */
 /*
- * Copyright (C) 2015 Cloudius Systems, Ltd.
+ * Copyright 2015 Cloudius Systems
  */
 
-#pragma once
+#ifndef COMMON_HH_
+#define COMMON_HH_
 
-/*
- * This header file defines a hash function for enum types, using the
- * standard hash function of the underlying type (such as int). This makes
- * it possible to inherit from this type to
- */
+#include <unordered_map>
+#include "core/sstring.hh"
 
-#include <type_traits>
-#include <functional>
-#include <cstddef>
+namespace httpd {
 
-template <typename T>
-class enum_hash {
-    static_assert(std::is_enum<T>::value, "must be an enum");
-public:
-    std::size_t operator()(const T& e) const {
-        using utype = typename std::underlying_type<T>::type;
-        return std::hash<utype>()(static_cast<utype>(e));
-    }
+typedef std::unordered_map<sstring, sstring> parameters;
+
+enum operation_type {
+    GET, POST, PUT, DELETE, NUM_OPERATION
 };
+
+/**
+ * Translate the string command to operation type
+ * @param type the string "GET" or "POST"
+ * @return the operation_type
+ */
+operation_type str2type(const sstring& type);
+
+}
+
+#endif /* COMMON_HH_ */

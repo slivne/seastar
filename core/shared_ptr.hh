@@ -69,6 +69,9 @@ lw_shared_ptr<T> make_lw_shared(T& a);
 template <typename T, typename... A>
 shared_ptr<T> make_shared(A&&... a);
 
+template <typename T>
+shared_ptr<T> make_shared(T&& a);
+
 template <typename T, typename U>
 shared_ptr<T> static_pointer_cast(const shared_ptr<U>& p);
 
@@ -271,6 +274,9 @@ public:
 
     template <typename U>
     friend class shared_ptr;
+
+    template <typename U, bool esft>
+    friend struct shared_ptr_make_helper;
 };
 
 template <typename T>
@@ -375,6 +381,9 @@ public:
     template <typename U, typename... A>
     friend shared_ptr<U> make_shared(A&&... a);
 
+    template <typename U>
+    friend shared_ptr<U> make_shared(U&& a);
+
     template <typename V, typename U>
     friend shared_ptr<V> static_pointer_cast(const shared_ptr<U>& p);
 
@@ -412,7 +421,8 @@ template <typename T>
 struct shared_ptr_make_helper<T, true> {
     template <typename... A>
     static shared_ptr<T> make(A&&... a) {
-        return shared_ptr<T>(new T(std::forward<A>(a)...));
+        auto p = new T(std::forward<A>(a)...);
+        return shared_ptr<T>(p, p);
     }
 };
 
@@ -420,8 +430,16 @@ template <typename T, typename... A>
 inline
 shared_ptr<T>
 make_shared(A&&... a) {
-    using helper = shared_ptr_make_helper<T, std::is_base_of<enable_shared_from_this<T>, T>::value>;
+    using helper = shared_ptr_make_helper<T, std::is_base_of<shared_ptr_count_base, T>::value>;
     return helper::make(std::forward<A>(a)...);
+}
+
+template <typename T>
+inline
+shared_ptr<T>
+make_shared(T&& a) {
+    using helper = shared_ptr_make_helper<T, std::is_base_of<shared_ptr_count_base, T>::value>;
+    return helper::make(std::forward<T>(a));
 }
 
 template <typename T, typename U>
@@ -598,5 +616,23 @@ struct shared_ptr_value_hash {
         return 0;
     }
 };
+
+namespace std {
+
+template <typename T>
+struct hash<lw_shared_ptr<T>> : private hash<T*> {
+    size_t operator()(const lw_shared_ptr<T>& p) const {
+        return hash<T*>::operator()(p.get());
+    }
+};
+
+template <typename T>
+struct hash<::shared_ptr<T>> : private hash<T*> {
+    size_t operator()(const ::shared_ptr<T>& p) const {
+        return hash<T*>::operator()(p.get());
+    }
+};
+
+}
 
 #endif /* SHARED_PTR_HH_ */
